@@ -34,6 +34,10 @@ class DocumentController extends Controller
         $filename  = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
         $uploadDir = public_path('uploads/aid-documents');
 
+        $originalName = $file->getClientOriginalName();
+        $mimeType     = $file->getClientMimeType();
+        $fileSize     = $file->getSize();
+
         if (! is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -46,9 +50,9 @@ class DocumentController extends Controller
             'title'          => $validated['title'],
             'control_number' => $validated['control_number'],
             'file_path'      => $relativePath,
-            'file_name'      => $file->getClientOriginalName(),
-            'file_type'      => $file->getClientMimeType(),
-            'file_size'      => $file->getSize(),
+            'file_name'      => $originalName,
+            'file_type'      => $mimeType,
+            'file_size'      => $fileSize,
             'uploaded_by'    => $request->user()->id,
         ]);
 
