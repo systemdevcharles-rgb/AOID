@@ -38,14 +38,16 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-[#f5f5f7]">
             <nav className="sticky top-0 z-30 h-12 border-b border-black/[0.06] bg-white/80 backdrop-blur-xl">
-                <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
+                <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <Link href="dashboard" className="flex items-center gap-2">
                             <ApplicationLogo className="h-7 w-auto object-contain" />
                         </Link>
-                        <div className="h-4 w-px bg-gray-200" />
-                        <div className="flex items-center gap-0.5">
+
+                        {/* Desktop nav pills */}
+                        <div className="hidden sm:flex items-center gap-0.5">
+                            <div className="mr-1 h-4 w-px bg-gray-200" />
                             <NavPill href={route('dashboard')} active={route().current('dashboard')}>
                                 Dashboard
                             </NavPill>
@@ -63,12 +65,12 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="relative" ref={menuRef}>
                         <button
                             onClick={() => setMenuOpen(v => !v)}
-                            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 hover:bg-gray-100 transition-colors duration-150"
+                            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 sm:pr-2.5 hover:bg-gray-100 transition-colors duration-150"
                         >
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-[10px] font-bold text-white select-none">
                                 {initials}
                             </span>
-                            <span className="text-[13px] font-medium text-gray-700">{user.name}</span>
+                            <span className="hidden sm:inline text-[13px] font-medium text-gray-700">{user.name}</span>
                             <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -80,6 +82,34 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <p className="text-xs font-semibold text-gray-900 truncate">{user.name}</p>
                                     <p className="mt-0.5 text-[11px] text-gray-400 truncate">{user.email}</p>
                                 </div>
+
+                                {/* Mobile nav links — hidden on sm+ */}
+                                <div className="sm:hidden border-b border-gray-100 py-1">
+                                    <Link
+                                        href={route('dashboard')}
+                                        className="flex w-full items-center px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                                        onClick={() => setMenuOpen(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <Link
+                                        href={route('aid.index')}
+                                        className="flex w-full items-center px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                                        onClick={() => setMenuOpen(false)}
+                                    >
+                                        Documents
+                                    </Link>
+                                    {isAdmin && (
+                                        <Link
+                                            href={route('admin.users')}
+                                            className="flex w-full items-center px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                                            onClick={() => setMenuOpen(false)}
+                                        >
+                                            Users
+                                        </Link>
+                                    )}
+                                </div>
+
                                 <div className="py-1">
                                     <Link
                                         href={route('profile.edit')}
@@ -108,7 +138,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {header && (
                 <header className="border-b border-black/[0.06] bg-white">
-                    <div className="mx-auto max-w-7xl px-6 py-4">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
                         {header}
                     </div>
                 </header>

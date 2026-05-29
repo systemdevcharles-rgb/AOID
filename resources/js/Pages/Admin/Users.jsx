@@ -115,15 +115,15 @@ export default function Users({ users }) {
             {/* Content */}
             <div className="mx-auto w-full max-w-5xl px-6 py-8">
 
-                {/* Controls row */}
-                <div className="mb-4 flex items-center justify-between gap-4">
+                {/* Controls */}
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     {/* Filter pills */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 overflow-x-auto">
                         {FILTERS.map(f => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                                className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
                                     filter === f
                                         ? 'bg-gray-900 text-white'
                                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
@@ -145,7 +145,7 @@ export default function Users({ users }) {
                         placeholder="Search name or email..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="h-8 w-52 rounded-lg border border-gray-200 bg-white px-3 text-[12px] text-gray-900 placeholder-gray-300 outline-none transition-colors focus:border-gray-400"
+                        className="h-8 w-full rounded-lg border border-gray-200 bg-white px-3 text-[12px] text-gray-900 placeholder-gray-300 outline-none transition-colors focus:border-gray-400 sm:w-52"
                     />
                 </div>
 
@@ -164,13 +164,14 @@ export default function Users({ users }) {
                             </p>
                         </div>
                     ) : (
+                        <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left">
                             <thead>
                                 <tr className="border-b border-gray-100">
                                     <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">User</th>
-                                    <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Role</th>
+                                    <th className="hidden sm:table-cell px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Role</th>
                                     <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Status</th>
-                                    <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Registered</th>
+                                    <th className="hidden md:table-cell px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Registered</th>
                                     <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-400">Actions</th>
                                 </tr>
                             </thead>
@@ -183,18 +184,22 @@ export default function Users({ users }) {
                                                 <div>
                                                     <p className="text-[13px] font-medium text-gray-900">{u.name}</p>
                                                     <p className="text-[11px] text-gray-400">{u.email}</p>
+                                                    {/* Role + date inline on mobile */}
+                                                    <div className="sm:hidden mt-1 flex items-center gap-1.5">
+                                                        <StatusBadge status={u.status} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3.5">
+                                        <td className="hidden sm:table-cell px-5 py-3.5">
                                             <span className="inline-flex rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
                                                 {u.role === 'admin' ? 'Administrator' : 'Admin Assistant'}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3.5">
+                                        <td className="hidden sm:table-cell px-5 py-3.5">
                                             <StatusBadge status={u.status} />
                                         </td>
-                                        <td className="px-5 py-3.5">
+                                        <td className="hidden md:table-cell px-5 py-3.5">
                                             <span className="text-[12px] text-gray-400 tabular-nums">{u.created_at}</span>
                                         </td>
                                         <td className="px-5 py-3.5 text-right">
@@ -225,6 +230,7 @@ export default function Users({ users }) {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     )}
                 </div>
 

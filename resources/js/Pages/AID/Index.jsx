@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 
-/* ─── utils ───────────────────────────────────────── */
+/* ─── utils ────────────────────────────────────────── */
 function formatBytes(bytes) {
     if (!bytes) return '—';
     if (bytes < 1024) return bytes + ' B';
@@ -17,7 +17,7 @@ function formatDate(str) {
     });
 }
 
-/* ─── icons ───────────────────────────────────────── */
+/* ─── icons ─────────────────────────────────────────── */
 const Icon = {
     X: ({ className = 'h-3.5 w-3.5' }) => (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -95,6 +95,11 @@ const Icon = {
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
         </svg>
     ),
+    Menu: ({ className = 'h-4 w-4' }) => (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    ),
 };
 
 function FileIcon({ type, className }) {
@@ -102,14 +107,14 @@ function FileIcon({ type, className }) {
     return <Icon.Document className={className} />;
 }
 
-/* ─── Toast ───────────────────────────────────────── */
+/* ─── Toast ─────────────────────────────────────────── */
 function Toast({ message, onDone }) {
     useEffect(() => {
         const t = setTimeout(onDone, 3000);
         return () => clearTimeout(t);
     }, []);
     return (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-slide-up">
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-slide-up px-4">
             <div className="flex items-center gap-2.5 rounded-full border border-black/[0.06] bg-gray-900 px-4 py-2.5 text-[13px] text-white shadow-xl">
                 <Icon.Check className="h-3.5 w-3.5 text-white/70" />
                 {message}
@@ -118,11 +123,11 @@ function Toast({ message, onDone }) {
     );
 }
 
-/* ─── Modal shell ─────────────────────────────────── */
+/* ─── Modal shell ────────────────────────────────────── */
 function Modal({ title, onClose, children, size = 'sm' }) {
     const maxW = { lg: 'max-w-4xl', md: 'max-w-md', sm: 'max-w-sm' }[size] ?? 'max-w-sm';
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm sm:items-center p-4 sm:p-4"
             onClick={onClose}>
             <div className={`flex w-full ${maxW} flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl`}
                 onClick={e => e.stopPropagation()}>
@@ -139,18 +144,19 @@ function Modal({ title, onClose, children, size = 'sm' }) {
     );
 }
 
-/* ─── Field ───────────────────────────────────────── */
-function Field({ label, error, children }) {
+/* ─── Field ──────────────────────────────────────────── */
+function Field({ label, error, children, hint }) {
     return (
         <div>
             <label className="mb-1.5 block text-[12px] font-semibold text-gray-500 uppercase tracking-wide">{label}</label>
             {children}
+            {hint && !error && <p className="mt-1 text-[11px] text-gray-400">{hint}</p>}
             {error && <p className="mt-1 text-[11px] text-red-500">{error}</p>}
         </div>
     );
 }
 
-/* ─── ConfirmDialog (admin) ───────────────────────── */
+/* ─── ConfirmDialog (admin) ──────────────────────────── */
 function ConfirmDialog({ doc, onConfirm, onCancel }) {
     return (
         <Modal title="Delete Document" onClose={onCancel} size="sm">
@@ -179,7 +185,7 @@ function ConfirmDialog({ doc, onConfirm, onCancel }) {
     );
 }
 
-/* ─── DeletionReasonModal (admin assistant) ───────── */
+/* ─── DeletionReasonModal (admin assistant) ──────────── */
 function DeletionReasonModal({ doc, onClose }) {
     const [reason, setReason]   = useState('');
     const [error, setError]     = useState('');
@@ -244,9 +250,9 @@ function DeletionReasonModal({ doc, onClose }) {
     );
 }
 
-/* ─── PreviewModal ────────────────────────────────── */
+/* ─── PreviewModal ───────────────────────────────────── */
 function PreviewModal({ doc, onClose }) {
-    const fileUrl = `/storage/${doc.file_path}`;
+    const fileUrl = `/${doc.file_path}`;
     const isPdf   = doc.file_type?.includes('pdf');
     const isImage = doc.file_type?.includes('image');
 
@@ -256,38 +262,38 @@ function PreviewModal({ doc, onClose }) {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 sm:p-4"
             onClick={onClose}>
-            <div className="flex w-full max-w-4xl max-h-[92vh] flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl"
+            <div className="flex w-full max-w-4xl max-h-[95vh] flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl"
                 onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
-                <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 bg-[#fafafa] px-5 py-3.5">
+                <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 bg-[#fafafa] px-4 py-3">
                     <button onClick={onClose}
                         className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition-colors">
                         <Icon.X className="h-3.5 w-3.5" />
                     </button>
-                    <p className="flex-1 px-4 text-center text-[13px] font-medium text-gray-600 truncate">{doc.title}</p>
+                    <p className="flex-1 px-3 text-center text-[13px] font-medium text-gray-600 truncate">{doc.title}</p>
                     <button onClick={handlePrint}
-                        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
                         <Icon.Print className="h-3 w-3" />
-                        Print
+                        <span className="hidden sm:inline">Print</span>
                     </button>
                 </div>
 
-                {/* Control number */}
-                <div className="flex-shrink-0 border-b border-gray-100 bg-gray-900 px-6 py-2">
-                    <p className="text-center font-mono text-[11px] font-semibold tracking-widest text-gray-400">
+                {/* Control number strip */}
+                <div className="flex-shrink-0 border-b border-gray-100 bg-gray-900 px-4 py-2">
+                    <p className="text-center font-mono text-[11px] font-semibold tracking-widest text-gray-400 truncate">
                         {doc.control_number}
                     </p>
                 </div>
 
                 {/* Preview */}
-                <div className="flex-1 overflow-auto bg-[#f5f5f7] flex items-center justify-center min-h-[400px]">
-                    {isPdf && <iframe src={fileUrl} className="h-full w-full min-h-[500px]" title={doc.title} />}
-                    {isImage && <img src={fileUrl} alt={doc.title} className="max-h-[560px] object-contain" />}
+                <div className="flex-1 overflow-auto bg-[#f5f5f7] flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
+                    {isPdf && <iframe src={fileUrl} className="h-full w-full min-h-[400px] sm:min-h-[500px]" title={doc.title} />}
+                    {isImage && <img src={fileUrl} alt={doc.title} className="max-h-[400px] sm:max-h-[560px] object-contain" />}
                     {!isPdf && !isImage && (
-                        <div className="flex flex-col items-center gap-4 p-12 text-center">
+                        <div className="flex flex-col items-center gap-4 p-8 sm:p-12 text-center">
                             <span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
                                 <FileIcon type={doc.file_type} className="h-7 w-7 text-gray-400" />
                             </span>
@@ -305,17 +311,17 @@ function PreviewModal({ doc, onClose }) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex flex-shrink-0 items-center justify-between border-t border-gray-100 bg-[#fafafa] px-5 py-3">
-                    <div className="flex items-center gap-2 text-[12px] text-gray-500">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-[9px] font-bold text-gray-600">
+                <div className="flex flex-shrink-0 items-center justify-between border-t border-gray-100 bg-[#fafafa] px-4 py-3">
+                    <div className="flex items-center gap-2 text-[12px] text-gray-500 min-w-0">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[9px] font-bold text-gray-600">
                             {doc.uploader?.name?.[0]?.toUpperCase() ?? '?'}
                         </span>
-                        <span>{doc.uploader?.name ?? '—'}</span>
-                        <span className="text-gray-300">·</span>
-                        <span className="text-gray-400">{formatDate(doc.created_at)}</span>
+                        <span className="truncate">{doc.uploader?.name ?? '—'}</span>
+                        <span className="text-gray-300 hidden sm:inline">·</span>
+                        <span className="text-gray-400 hidden sm:inline">{formatDate(doc.created_at)}</span>
                     </div>
                     <button onClick={onClose}
-                        className="rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-[12px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                        className="ml-3 shrink-0 rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-[12px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                         Close
                     </button>
                 </div>
@@ -324,7 +330,7 @@ function PreviewModal({ doc, onClose }) {
     );
 }
 
-/* ─── CustomSelect ────────────────────────────────── */
+/* ─── CustomSelect ───────────────────────────────────── */
 function CustomSelect({ options, value, onChange }) {
     const [open, setOpen] = useState(false);
     const ref = useRef();
@@ -368,15 +374,11 @@ function CustomSelect({ options, value, onChange }) {
                                 type="button"
                                 onClick={() => { onChange(opt.value); setOpen(false); }}
                                 className={`flex w-full items-center justify-between px-3.5 py-2.5 text-left text-[13px] transition-colors hover:bg-gray-50 ${
-                                    opt.value === value
-                                        ? 'font-semibold text-gray-900'
-                                        : 'font-normal text-gray-600'
+                                    opt.value === value ? 'font-semibold text-gray-900' : 'font-normal text-gray-600'
                                 }`}
                             >
                                 <span>{opt.label}</span>
-                                {opt.value === value && (
-                                    <Icon.Check className="h-3.5 w-3.5 flex-shrink-0 text-green-600" />
-                                )}
+                                {opt.value === value && <Icon.Check className="h-3.5 w-3.5 flex-shrink-0 text-green-600" />}
                             </button>
                         ))}
                     </div>
@@ -386,12 +388,13 @@ function CustomSelect({ options, value, onChange }) {
     );
 }
 
-/* ─── AttachModal ─────────────────────────────────── */
+/* ─── AttachModal ────────────────────────────────────── */
 function AttachModal({ categories, onClose }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        category_id: categories[0]?.id ?? '',
-        title: '',
-        file: null,
+        category_id:    categories[0]?.id ?? '',
+        title:          '',
+        control_number: '',
+        file:           null,
     });
     const fileRef = useRef();
 
@@ -431,9 +434,22 @@ function AttachModal({ categories, onClose }) {
                     />
                 </Field>
 
+                <Field
+                    label="Control Number"
+                    error={errors.control_number}
+                    hint="Enter the document's existing control number exactly as written."
+                >
+                    <input
+                        type="text"
+                        value={data.control_number}
+                        onChange={e => setData('control_number', e.target.value)}
+                        placeholder="e.g. MEMORANDUM NO. 2024-001"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-mono text-[13px] text-gray-800 placeholder-gray-300 focus:border-gray-400 focus:ring-0 focus:outline-none transition-colors"
+                    />
+                </Field>
+
                 <Field label="File" error={errors.file}>
                     {data.file ? (
-                        /* ── File selected state ── */
                         <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3">
                             <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-sm">
                                 <FileIcon type={data.file.type} className="h-4 w-4 text-gray-500" />
@@ -442,20 +458,14 @@ function AttachModal({ categories, onClose }) {
                                 <p className="truncate text-[13px] font-medium text-gray-800">{data.file.name}</p>
                                 <p className="text-[11px] text-gray-400">{formatBytes(data.file.size)}</p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={clearFile}
-                                className="flex-shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-500 hover:bg-gray-100 transition-colors"
-                            >
+                            <button type="button" onClick={clearFile}
+                                className="flex-shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-500 hover:bg-gray-100 transition-colors">
                                 Change
                             </button>
                         </div>
                     ) : (
-                        /* ── Empty drop zone ── */
-                        <div
-                            onClick={() => fileRef.current?.click()}
-                            className="flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-4 hover:border-gray-300 hover:bg-gray-100 transition-colors"
-                        >
+                        <div onClick={() => fileRef.current?.click()}
+                            className="flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-4 hover:border-gray-300 hover:bg-gray-100 transition-colors">
                             <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm">
                                 <Icon.Upload className="h-5 w-5 text-gray-400" />
                             </span>
@@ -465,29 +475,18 @@ function AttachModal({ categories, onClose }) {
                             </div>
                         </div>
                     )}
-                    <input
-                        ref={fileRef}
-                        type="file"
-                        className="hidden"
+                    <input ref={fileRef} type="file" className="hidden"
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        onChange={e => setData('file', e.target.files[0])}
-                    />
+                        onChange={e => setData('file', e.target.files[0])} />
                 </Field>
 
-                {/* Actions */}
                 <div className="flex gap-2 border-t border-gray-100 pt-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex-1 rounded-xl border border-gray-200 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
+                    <button type="button" onClick={onClose}
+                        className="flex-1 rounded-xl border border-gray-200 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="flex-1 rounded-xl bg-gray-900 py-2.5 text-[13px] font-semibold text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
-                    >
+                    <button type="submit" disabled={processing}
+                        className="flex-1 rounded-xl bg-gray-900 py-2.5 text-[13px] font-semibold text-white hover:bg-gray-700 disabled:opacity-40 transition-colors">
                         {processing ? 'Attaching…' : 'Attach'}
                     </button>
                 </div>
@@ -496,7 +495,7 @@ function AttachModal({ categories, onClose }) {
     );
 }
 
-/* ─── AddCategoryModal ────────────────────────────── */
+/* ─── AddCategoryModal ───────────────────────────────── */
 const DEFAULT_CATEGORIES = [
     'Memorandum', 'Memorandum Circular', 'Administrative Order',
     'Department Order', 'Office Order', 'Notice of Implementation',
@@ -562,7 +561,7 @@ function AddCategoryModal({ existingNames, onClose }) {
     );
 }
 
-/* ─── Documents Table ─────────────────────────────── */
+/* ─── DocumentsTable ─────────────────────────────────── */
 function DocumentsTable({ documents, isAdmin, onPreview, onDelete }) {
     if (documents.length === 0) {
         return (
@@ -575,87 +574,83 @@ function DocumentsTable({ documents, isAdmin, onPreview, onDelete }) {
 
     return (
         <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm">
-            <table className="w-full text-left">
-                <thead>
-                    <tr className="border-b border-gray-100 bg-[#fafafa]">
-                        <th className="w-12 px-4 py-3" />
-                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Document</th>
-                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Control Number</th>
-                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Attached By</th>
-                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Date Attached</th>
-                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Size</th>
-                        <th className="w-24 px-4 py-3" />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                    {documents.map((doc, i) => (
-                        <tr key={doc.id}
-                            className="group cursor-pointer transition-colors duration-100 hover:bg-gray-50"
-                            onClick={() => onPreview(doc)}>
-
-                            {/* File type icon */}
-                            <td className="px-4 py-3.5">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-100 bg-gray-50">
-                                    <FileIcon type={doc.file_type} className="h-4 w-4 text-gray-400" />
-                                </span>
-                            </td>
-
-                            {/* Title + filename */}
-                            <td className="px-4 py-3.5">
-                                <p className="text-[13px] font-semibold text-gray-900">{doc.title}</p>
-                                <p className="mt-0.5 text-[11px] text-gray-400">{doc.file_name}</p>
-                            </td>
-
-                            {/* Control number */}
-                            <td className="px-4 py-3.5">
-                                <div className="inline-block max-w-[220px] rounded-lg border border-gray-100 bg-[#fafafa] px-2.5 py-1.5">
-                                    <p className="truncate font-mono text-[10px] font-medium text-gray-500 leading-snug">
-                                        {doc.control_number}
-                                    </p>
-                                </div>
-                            </td>
-
-                            {/* Uploader */}
-                            <td className="px-4 py-3.5">
-                                <div className="flex items-center gap-2">
-                                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
-                                        {doc.uploader?.name?.[0]?.toUpperCase() ?? '?'}
-                                    </span>
-                                    <span className="text-[12px] text-gray-700">{doc.uploader?.name ?? '—'}</span>
-                                </div>
-                            </td>
-
-                            {/* Date */}
-                            <td className="px-4 py-3.5">
-                                <p className="text-[12px] text-gray-500">{formatDate(doc.created_at)}</p>
-                            </td>
-
-                            {/* Size */}
-                            <td className="px-4 py-3.5">
-                                <p className="text-[12px] text-gray-400 tabular-nums">{formatBytes(doc.file_size)}</p>
-                            </td>
-
-                            {/* Actions */}
-                            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
-                                <div className="flex items-center justify-end gap-1.5 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
-                                    <button onClick={() => onPreview(doc)}
-                                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 shadow-sm hover:text-gray-700 transition-colors"
-                                        title="View document">
-                                        <Icon.Eye />
-                                    </button>
-                                    <button onClick={() => onDelete(doc)}
-                                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 shadow-sm hover:border-red-200 hover:text-red-500 transition-colors"
-                                        title={isAdmin ? 'Delete document' : 'Request deletion'}>
-                                        <Icon.Trash />
-                                    </button>
-                                </div>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="border-b border-gray-100 bg-[#fafafa]">
+                            <th className="w-12 px-4 py-3" />
+                            <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Document</th>
+                            <th className="hidden sm:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Control Number</th>
+                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Attached By</th>
+                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Date</th>
+                            <th className="hidden md:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Size</th>
+                            <th className="w-20 px-4 py-3" />
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {documents.map(doc => (
+                            <tr key={doc.id}
+                                className="group cursor-pointer transition-colors duration-100 hover:bg-gray-50"
+                                onClick={() => onPreview(doc)}>
 
-            {/* Table footer */}
+                                <td className="px-4 py-3.5">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-100 bg-gray-50">
+                                        <FileIcon type={doc.file_type} className="h-4 w-4 text-gray-400" />
+                                    </span>
+                                </td>
+
+                                <td className="px-4 py-3.5 min-w-[160px]">
+                                    <p className="text-[13px] font-semibold text-gray-900 leading-snug">{doc.title}</p>
+                                    <p className="mt-0.5 text-[11px] text-gray-400 truncate max-w-[200px]">{doc.file_name}</p>
+                                    {/* Show control number inline on mobile */}
+                                    <p className="sm:hidden mt-1 font-mono text-[10px] text-gray-400 truncate max-w-[200px]">{doc.control_number}</p>
+                                </td>
+
+                                <td className="hidden sm:table-cell px-4 py-3.5">
+                                    <div className="inline-block max-w-[200px] rounded-lg border border-gray-100 bg-[#fafafa] px-2.5 py-1.5">
+                                        <p className="truncate font-mono text-[10px] font-medium text-gray-500 leading-snug">
+                                            {doc.control_number}
+                                        </p>
+                                    </div>
+                                </td>
+
+                                <td className="hidden lg:table-cell px-4 py-3.5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
+                                            {doc.uploader?.name?.[0]?.toUpperCase() ?? '?'}
+                                        </span>
+                                        <span className="text-[12px] text-gray-700">{doc.uploader?.name ?? '—'}</span>
+                                    </div>
+                                </td>
+
+                                <td className="hidden lg:table-cell px-4 py-3.5">
+                                    <p className="text-[12px] text-gray-500 whitespace-nowrap">{formatDate(doc.created_at)}</p>
+                                </td>
+
+                                <td className="hidden md:table-cell px-4 py-3.5">
+                                    <p className="text-[12px] text-gray-400 tabular-nums">{formatBytes(doc.file_size)}</p>
+                                </td>
+
+                                <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                                    <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 sm:transition-opacity sm:duration-100 sm:group-hover:opacity-100">
+                                        <button onClick={() => onPreview(doc)}
+                                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 shadow-sm hover:text-gray-700 transition-colors"
+                                            title="View">
+                                            <Icon.Eye />
+                                        </button>
+                                        <button onClick={() => onDelete(doc)}
+                                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 shadow-sm hover:border-red-200 hover:text-red-500 transition-colors"
+                                            title="Delete">
+                                            <Icon.Trash />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
             <div className="border-t border-gray-100 bg-[#fafafa] px-4 py-2.5">
                 <p className="text-[11px] text-gray-400">
                     {documents.length} document{documents.length !== 1 ? 's' : ''}
@@ -665,7 +660,7 @@ function DocumentsTable({ documents, isAdmin, onPreview, onDelete }) {
     );
 }
 
-/* ─── Main ────────────────────────────────────────── */
+/* ─── Main ───────────────────────────────────────────── */
 export default function AIDIndex({ categories }) {
     const { auth, flash } = usePage().props;
     const isAdmin = auth.user.role === 'admin';
@@ -674,8 +669,9 @@ export default function AIDIndex({ categories }) {
     const [showAttach, setShowAttach]       = useState(false);
     const [showAddCat, setShowAddCat]       = useState(false);
     const [previewDoc, setPreviewDoc]       = useState(null);
-    const [confirmDelete, setConfirmDelete] = useState(null); // admin flow
-    const [reasonDelete, setReasonDelete]   = useState(null); // admin assistant flow
+    const [confirmDelete, setConfirmDelete] = useState(null);
+    const [reasonDelete, setReasonDelete]   = useState(null);
+    const [confirmDeleteCat, setConfirmDeleteCat] = useState(null);
     const [toast, setToast]                 = useState(null);
 
     useEffect(() => {
@@ -687,11 +683,7 @@ export default function AIDIndex({ categories }) {
     const totalDocs      = categories.reduce((n, c) => n + (c.documents?.length ?? 0), 0);
 
     function handleDeleteClick(doc) {
-        if (isAdmin) {
-            setConfirmDelete(doc);
-        } else {
-            setReasonDelete(doc);
-        }
+        isAdmin ? setConfirmDelete(doc) : setReasonDelete(doc);
     }
 
     function handleAdminDeleteConfirm() {
@@ -702,10 +694,16 @@ export default function AIDIndex({ categories }) {
     }
 
     function handleDeleteCategory(cat) {
-        router.delete(route('aid.categories.destroy', cat.id), {
+        setConfirmDeleteCat(cat);
+    }
+
+    function confirmCategoryDelete() {
+        if (!confirmDeleteCat) return;
+        router.delete(route('aid.categories.destroy', confirmDeleteCat.id), {
             onSuccess: () => {
-                if (selectedId === cat.id)
-                    setSelectedId(categories.find(c => c.id !== cat.id)?.id ?? null);
+                if (selectedId === confirmDeleteCat.id)
+                    setSelectedId(categories.find(c => c.id !== confirmDeleteCat.id)?.id ?? null);
+                setConfirmDeleteCat(null);
             },
         });
     }
@@ -714,163 +712,193 @@ export default function AIDIndex({ categories }) {
         <AuthenticatedLayout>
             <Head title="Documents — AID" />
 
-            <div className="flex h-[calc(100vh-3rem)] overflow-hidden">
+            <div className="flex h-[calc(100vh-3rem)] flex-col overflow-hidden">
 
-                {/* ── Sidebar ─────────────────────────────────── */}
-                <aside className="flex w-60 flex-shrink-0 flex-col overflow-hidden border-r border-black/[0.06] bg-white">
-
-                    <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Categories</p>
-                        {isAdmin && (
-                            <button onClick={() => setShowAddCat(true)}
-                                className="flex h-5 w-5 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                                title="New category">
-                                <Icon.Plus className="h-3 w-3" />
+                {/* ── Mobile category bar (hidden on md+) ──────── */}
+                <div className="flex md:hidden shrink-0 items-center gap-1.5 overflow-x-auto border-b border-black/[0.06] bg-white px-3 py-2">
+                    {categories.length === 0 ? (
+                        <p className="text-[12px] text-gray-400 px-1">No categories</p>
+                    ) : (
+                        categories.map(cat => (
+                            <button key={cat.id}
+                                onClick={() => setSelectedId(cat.id)}
+                                className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium whitespace-nowrap transition-colors ${
+                                    cat.id === selectedId
+                                        ? 'bg-gray-900 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}>
+                                {cat.name}
+                                <span className={`ml-1.5 text-[10px] tabular-nums ${cat.id === selectedId ? 'text-white/60' : 'text-gray-400'}`}>
+                                    {cat.documents?.length ?? 0}
+                                </span>
                             </button>
-                        )}
-                    </div>
+                        ))
+                    )}
+                    {isAdmin && (
+                        <button onClick={() => setShowAddCat(true)}
+                            className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+                            <Icon.Plus className="h-3 w-3" />
+                        </button>
+                    )}
+                </div>
 
-                    <div className="flex-1 overflow-y-auto p-2">
-                        {categories.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center">
-                                <p className="text-[12px] text-gray-400">No categories yet</p>
-                                {isAdmin && (
-                                    <button onClick={() => setShowAddCat(true)}
-                                        className="mt-1.5 text-[12px] font-semibold text-gray-600 underline underline-offset-2 hover:text-gray-900">
-                                        Add one
-                                    </button>
-                                )}
-                            </div>
-                        ) : (
-                            <ul className="space-y-0.5">
-                                {categories.map(cat => {
-                                    const active = cat.id === selectedId;
-                                    return (
-                                        <li key={cat.id}>
-                                            <button onClick={() => setSelectedId(cat.id)}
-                                                className={`group flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-all duration-100 ${
-                                                    active ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                                }`}>
-                                                <span className="truncate text-[13px] font-medium">{cat.name}</span>
-                                                <div className="flex flex-shrink-0 items-center gap-1.5">
-                                                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
-                                                        active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
-                                                    }`}>
-                                                        {cat.documents?.length ?? 0}
-                                                    </span>
-                                                    {/* Only admin can delete categories */}
-                                                    {isAdmin && !active && (
-                                                        <button onClick={e => { e.stopPropagation(); handleDeleteCategory(cat); }}
-                                                            className="flex h-4 w-4 items-center justify-center rounded-full text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
-                                                            title="Delete category">
-                                                            <Icon.X className="h-2.5 w-2.5" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
+                {/* ── Two-panel layout ──────────────────────────── */}
+                <div className="flex flex-1 overflow-hidden">
 
-                    {/* User info */}
-                    <div className="border-t border-gray-100 p-3">
-                        <div className="flex items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-2.5">
-                            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-[9px] font-bold text-gray-600">
-                                {auth.user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
-                            </span>
-                            <div className="min-w-0">
-                                <p className="truncate text-[12px] font-semibold text-gray-700">{auth.user.name}</p>
-                                <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                                    {isAdmin ? 'Administrator' : 'Admin Assistant'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* ── Main area ────────────────────────────────── */}
-                <div className="flex flex-1 flex-col overflow-hidden bg-[#f5f5f7]">
-
-                    {/* Toolbar */}
-                    <div className="flex flex-shrink-0 items-center justify-between border-b border-black/[0.06] bg-white px-6 py-3.5">
-                        <div>
-                            <p className="text-[14px] font-semibold text-gray-900">
-                                {activeCategory ? activeCategory.name : 'Documents'}
-                            </p>
-                            <p className="text-[11px] text-gray-400">
-                                {totalDocs} document{totalDocs !== 1 ? 's' : ''} · {categories.length} categor{categories.length !== 1 ? 'ies' : 'y'}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2">
+                    {/* Sidebar — hidden on mobile */}
+                    <aside className="hidden md:flex w-60 flex-shrink-0 flex-col overflow-hidden border-r border-black/[0.06] bg-white">
+                        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Categories</p>
                             {isAdmin && (
                                 <button onClick={() => setShowAddCat(true)}
-                                    className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-600 shadow-sm hover:bg-gray-50 transition-colors">
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                                    title="New category">
                                     <Icon.Plus className="h-3 w-3" />
-                                    New Category
-                                </button>
-                            )}
-                            {categories.length > 0 && (
-                                <button onClick={() => setShowAttach(true)}
-                                    className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-gray-700 transition-colors">
-                                    <Icon.Paperclip className="h-3 w-3" />
-                                    Attach Document
                                 </button>
                             )}
                         </div>
-                    </div>
 
-                    {/* Content */}
-                    <div className="flex-1 overflow-y-auto p-6">
-                        {!activeCategory ? (
-                            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-                                <Icon.Folder className="text-gray-200" />
-                                <p className="text-[14px] font-medium text-gray-400">Select a category from the sidebar</p>
+                        <div className="flex-1 overflow-y-auto p-2">
+                            {categories.length === 0 ? (
+                                <div className="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center">
+                                    <p className="text-[12px] text-gray-400">No categories yet</p>
+                                    {isAdmin && (
+                                        <button onClick={() => setShowAddCat(true)}
+                                            className="mt-1.5 text-[12px] font-semibold text-gray-600 underline underline-offset-2 hover:text-gray-900">
+                                            Add one
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <ul className="space-y-0.5">
+                                    {categories.map(cat => {
+                                        const active = cat.id === selectedId;
+                                        return (
+                                            <li key={cat.id}>
+                                                <button onClick={() => setSelectedId(cat.id)}
+                                                    className={`group flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-all duration-100 ${
+                                                        active ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                    }`}>
+                                                    <span className="truncate text-[13px] font-medium">{cat.name}</span>
+                                                    <div className="flex flex-shrink-0 items-center gap-1.5">
+                                                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
+                                                            active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                            {cat.documents?.length ?? 0}
+                                                        </span>
+                                                        {isAdmin && (
+                                                            <button onClick={e => { e.stopPropagation(); handleDeleteCategory(cat); }}
+                                                                className="flex h-4 w-4 items-center justify-center rounded-full text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                                                                title="Delete category">
+                                                                <Icon.X className="h-2.5 w-2.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </div>
+
+                        {/* User info */}
+                        <div className="border-t border-gray-100 p-3">
+                            <div className="flex items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-2.5">
+                                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-[9px] font-bold text-gray-600">
+                                    {auth.user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="truncate text-[12px] font-semibold text-gray-700">{auth.user.name}</p>
+                                    <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                                        {isAdmin ? 'Administrator' : 'Admin Assistant'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Main area */}
+                    <div className="flex flex-1 flex-col overflow-hidden bg-[#f5f5f7]">
+
+                        {/* Toolbar */}
+                        <div className="flex flex-shrink-0 items-center justify-between border-b border-black/[0.06] bg-white px-4 sm:px-6 py-3.5 gap-3">
+                            <div className="min-w-0">
+                                <p className="text-[14px] font-semibold text-gray-900 truncate">
+                                    {activeCategory ? activeCategory.name : 'Documents'}
+                                </p>
+                                <p className="text-[11px] text-gray-400">
+                                    {totalDocs} doc{totalDocs !== 1 ? 's' : ''} · {categories.length} categor{categories.length !== 1 ? 'ies' : 'y'}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
                                 {isAdmin && (
                                     <button onClick={() => setShowAddCat(true)}
-                                        className="mt-1 rounded-xl bg-gray-900 px-4 py-2 text-[13px] font-semibold text-white hover:bg-gray-700 transition-colors">
-                                        Create First Category
+                                        className="hidden sm:flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-600 shadow-sm hover:bg-gray-50 transition-colors">
+                                        <Icon.Plus className="h-3 w-3" />
+                                        New Category
+                                    </button>
+                                )}
+                                {categories.length > 0 && (
+                                    <button onClick={() => setShowAttach(true)}
+                                        className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-gray-700 transition-colors">
+                                        <Icon.Paperclip className="h-3 w-3" />
+                                        <span className="hidden xs:inline">Attach</span>
+                                        <span className="hidden sm:inline"> Document</span>
                                     </button>
                                 )}
                             </div>
-                        ) : (
-                            <>
-                                {/* Category label row */}
-                                <div className="mb-4 flex items-center gap-2">
-                                    <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[12px] font-semibold text-gray-600 shadow-sm">
-                                        {activeCategory.name}
-                                    </span>
-                                    <span className="text-[11px] text-gray-400">
-                                        {documents.length} document{documents.length !== 1 ? 's' : ''}
-                                    </span>
-                                </div>
+                        </div>
 
-                                {documents.length === 0 ? (
-                                    <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-200 bg-white text-center">
-                                        <Icon.Inbox className="text-gray-200" />
-                                        <p className="text-[13px] font-medium text-gray-400">No documents in this category</p>
-                                        <button onClick={() => setShowAttach(true)}
-                                            className="rounded-xl bg-gray-900 px-4 py-2 text-[12px] font-semibold text-white hover:bg-gray-700 transition-colors">
-                                            Attach First Document
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                            {!activeCategory ? (
+                                <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                                    <Icon.Folder className="text-gray-200" />
+                                    <p className="text-[14px] font-medium text-gray-400">Select a category</p>
+                                    {isAdmin && (
+                                        <button onClick={() => setShowAddCat(true)}
+                                            className="mt-1 rounded-xl bg-gray-900 px-4 py-2 text-[13px] font-semibold text-white hover:bg-gray-700 transition-colors">
+                                            Create First Category
                                         </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mb-4 flex items-center gap-2">
+                                        <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[12px] font-semibold text-gray-600 shadow-sm">
+                                            {activeCategory.name}
+                                        </span>
+                                        <span className="text-[11px] text-gray-400">
+                                            {documents.length} document{documents.length !== 1 ? 's' : ''}
+                                        </span>
                                     </div>
-                                ) : (
-                                    <DocumentsTable
-                                        documents={documents}
-                                        isAdmin={isAdmin}
-                                        onPreview={setPreviewDoc}
-                                        onDelete={handleDeleteClick}
-                                    />
-                                )}
-                            </>
-                        )}
+
+                                    {documents.length === 0 ? (
+                                        <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-200 bg-white text-center">
+                                            <Icon.Inbox className="text-gray-200" />
+                                            <p className="text-[13px] font-medium text-gray-400">No documents in this category</p>
+                                            <button onClick={() => setShowAttach(true)}
+                                                className="rounded-xl bg-gray-900 px-4 py-2 text-[12px] font-semibold text-white hover:bg-gray-700 transition-colors">
+                                                Attach First Document
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <DocumentsTable
+                                            documents={documents}
+                                            isAdmin={isAdmin}
+                                            onPreview={setPreviewDoc}
+                                            onDelete={handleDeleteClick}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* ── Modals ─── */}
+            {/* Modals */}
             {showAttach    && <AttachModal categories={categories} onClose={() => setShowAttach(false)} />}
             {showAddCat    && <AddCategoryModal existingNames={categories.map(c => c.name)} onClose={() => setShowAddCat(false)} />}
             {previewDoc    && <PreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />}
@@ -880,6 +908,36 @@ export default function AIDIndex({ categories }) {
                     onConfirm={handleAdminDeleteConfirm}
                     onCancel={() => setConfirmDelete(null)}
                 />
+            )}
+            {confirmDeleteCat && (
+                <Modal title="Delete Category" onClose={() => setConfirmDeleteCat(null)} size="sm">
+                    <div className="p-5">
+                        <div className="mb-5 flex items-start gap-3">
+                            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50">
+                                <Icon.Warning className="h-4 w-4 text-red-500" />
+                            </span>
+                            <div>
+                                <p className="text-[13px] font-semibold text-gray-900">{confirmDeleteCat.name}</p>
+                                <p className="mt-0.5 text-[12px] text-gray-500">
+                                    This will permanently delete the category
+                                    {(confirmDeleteCat.documents?.length ?? 0) > 0
+                                        ? ` and all ${confirmDeleteCat.documents.length} document${confirmDeleteCat.documents.length !== 1 ? 's' : ''} inside it`
+                                        : ''}.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setConfirmDeleteCat(null)}
+                                className="flex-1 rounded-xl border border-gray-200 py-2 text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={confirmCategoryDelete}
+                                className="flex-1 rounded-xl bg-red-500 py-2 text-[13px] font-semibold text-white hover:bg-red-600 transition-colors">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
             )}
             {reasonDelete  && (
                 <DeletionReasonModal
