@@ -288,6 +288,14 @@ function PreviewModal({ doc, onClose }) {
                     </p>
                 </div>
 
+                {/* Details strip */}
+                {doc.details && (
+                    <div className="flex-shrink-0 border-b border-gray-100 bg-gray-50 px-5 py-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">Details</p>
+                        <p className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">{doc.details}</p>
+                    </div>
+                )}
+
                 {/* Preview */}
                 <div className="flex-1 overflow-auto bg-[#f5f5f7] flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                     {isPdf && <iframe src={fileUrl} className="h-full w-full min-h-[400px] sm:min-h-[500px]" title={doc.title} />}
@@ -392,8 +400,9 @@ function CustomSelect({ options, value, onChange }) {
 function AttachModal({ categories, onClose }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         category_id:    categories[0]?.id ?? '',
-        title:          '',
         control_number: '',
+        title:          '',
+        details:        '',
         file:           null,
     });
     const fileRef = useRef();
@@ -424,16 +433,6 @@ function AttachModal({ categories, onClose }) {
                     />
                 </Field>
 
-                <Field label="Document Title" error={errors.title}>
-                    <input
-                        type="text"
-                        value={data.title}
-                        onChange={e => setData('title', e.target.value)}
-                        placeholder="e.g. Personnel Policy Update"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] text-gray-800 placeholder-gray-300 focus:border-gray-400 focus:ring-0 focus:outline-none transition-colors"
-                    />
-                </Field>
-
                 <Field
                     label="Control Number"
                     error={errors.control_number}
@@ -445,6 +444,26 @@ function AttachModal({ categories, onClose }) {
                         onChange={e => setData('control_number', e.target.value)}
                         placeholder="e.g. MEMORANDUM NO. 2024-001"
                         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-mono text-[13px] text-gray-800 placeholder-gray-300 focus:border-gray-400 focus:ring-0 focus:outline-none transition-colors"
+                    />
+                </Field>
+
+                <Field label="Document Title" error={errors.title}>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={e => setData('title', e.target.value)}
+                        placeholder="e.g. Personnel Policy Update"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] text-gray-800 placeholder-gray-300 focus:border-gray-400 focus:ring-0 focus:outline-none transition-colors"
+                    />
+                </Field>
+
+                <Field label="Document Details" error={errors.details}>
+                    <textarea
+                        value={data.details}
+                        onChange={e => setData('details', e.target.value)}
+                        rows={3}
+                        placeholder="Brief description or notes about this document…"
+                        className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-[13px] text-gray-800 placeholder-gray-300 focus:border-gray-400 focus:ring-0 focus:outline-none transition-colors"
                     />
                 </Field>
 
@@ -562,7 +581,7 @@ function AddCategoryModal({ existingNames, onClose }) {
 }
 
 /* ─── DocumentsTable ─────────────────────────────────── */
-function DocumentsTable({ documents, isAdmin, onPreview, onDelete }) {
+function DocumentsTable({ documents, onPreview, onDelete }) {
     if (documents.length === 0) {
         return (
             <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-200 bg-white text-center">
@@ -886,7 +905,6 @@ export default function AIDIndex({ categories }) {
                                     ) : (
                                         <DocumentsTable
                                             documents={documents}
-                                            isAdmin={isAdmin}
                                             onPreview={setPreviewDoc}
                                             onDelete={handleDeleteClick}
                                         />

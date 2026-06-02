@@ -31,31 +31,34 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Requires an approved account
+// Requires an approved account — all roles (management, admin_assistant, admin)
 Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('/dashboard', function () {
+        $categories = \App\Models\DocumentCategory::with(['documents.uploader'])
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Dashboard', [
-            'stats' => [
-                'categories' => \App\Models\DocumentCategory::count(),
-                'documents'  => \App\Models\Document::count(),
-            ],
+            'categories' => $categories,
         ]);
     })->name('dashboard');
 
-    // AID — Attachment Issuance Documents
-    Route::get('/aid', [DocumentController::class, 'index'])->name('aid.index');
-    Route::post('/aid/documents', [DocumentController::class, 'store'])->name('aid.documents.store');
-    Route::delete('/aid/documents/{document}', [DocumentController::class, 'destroy'])->name('aid.documents.destroy');
+    // AID — blocked for management role
+    Route::middleware('not_management')->group(function () {
+        Route::get('/aid', [DocumentController::class, 'index'])->name('aid.index');
+        Route::post('/aid/documents', [DocumentController::class, 'store'])->name('aid.documents.store');
+        Route::delete('/aid/documents/{document}', [DocumentController::class, 'destroy'])->name('aid.documents.destroy');
 
-    // Admin-only routes
-    Route::middleware('admin')->group(function () {
-        Route::post('/aid/categories', [DocumentCategoryController::class, 'store'])->name('aid.categories.store');
-        Route::delete('/aid/categories/{category}', [DocumentCategoryController::class, 'destroy'])->name('aid.categories.destroy');
+        // Admin-only routes
+        Route::middleware('admin')->group(function () {
+            Route::post('/aid/categories', [DocumentCategoryController::class, 'store'])->name('aid.categories.store');
+            Route::delete('/aid/categories/{category}', [DocumentCategoryController::class, 'destroy'])->name('aid.categories.destroy');
 
-        // User Management
-        Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users');
-        Route::patch('/admin/users/{user}/approve', [UserManagementController::class, 'approve'])->name('admin.users.approve');
-        Route::patch('/admin/users/{user}/reject', [UserManagementController::class, 'reject'])->name('admin.users.reject');
+            // User Management
+            Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users');
+            Route::patch('/admin/users/{user}/approve', [UserManagementController::class, 'approve'])->name('admin.users.approve');
+            Route::patch('/admin/users/{user}/reject', [UserManagementController::class, 'reject'])->name('admin.users.reject');
+        });
     });
 });
 

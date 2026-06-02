@@ -17,6 +17,12 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
+    // Admin Assistant registration
+    Route::get('aoid/auth/register', [RegisteredUserController::class, 'createAdminAssistant'])
+        ->name('register.admin_assistant');
+
+    Route::post('aoid/auth/register', [RegisteredUserController::class, 'storeAdminAssistant']);
+
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 

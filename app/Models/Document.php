@@ -10,11 +10,12 @@ class Document extends Model
     protected $fillable = [
         'category_id',
         'title',
+        'control_number',
+        'details',
         'file_path',
         'file_name',
         'file_type',
         'file_size',
-        'control_number',
         'uploaded_by',
     ];
 

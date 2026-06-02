@@ -25,8 +25,9 @@ class DocumentController extends Controller
     {
         $validated = $request->validate([
             'category_id'    => ['required', 'exists:document_categories,id'],
-            'title'          => ['required', 'string', 'max:255'],
             'control_number' => ['required', 'string', 'max:255', 'unique:documents,control_number'],
+            'title'          => ['required', 'string', 'max:255'],
+            'details'        => ['nullable', 'string', 'max:2000'],
             'file'           => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
         ]);
 
@@ -47,8 +48,9 @@ class DocumentController extends Controller
 
         Document::create([
             'category_id'    => $validated['category_id'],
-            'title'          => $validated['title'],
             'control_number' => $validated['control_number'],
+            'title'          => $validated['title'],
+            'details'        => $validated['details'] ?? null,
             'file_path'      => $relativePath,
             'file_name'      => $originalName,
             'file_type'      => $mimeType,

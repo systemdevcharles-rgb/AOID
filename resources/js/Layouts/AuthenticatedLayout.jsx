@@ -20,7 +20,10 @@ function NavPill({ href, active, children }) {
 export default function AuthenticatedLayout({ header, children }) {
     const { auth } = usePage().props;
     const user = auth.user;
-    const isAdmin = user.role === 'admin';
+    const isAdmin            = user.role === 'admin';
+    const isAdminAssistant   = user.role === 'admin_assistant';
+    const canAccessDocuments = isAdmin || isAdminAssistant;
+
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef();
 
@@ -34,6 +37,12 @@ export default function AuthenticatedLayout({ header, children }) {
     }, []);
 
     const initials = user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+    const roleLabel = {
+        admin:           'Administrator',
+        admin_assistant: 'Admin Assistant',
+        management:      'Management',
+    }[user.role] ?? user.role;
 
     return (
         <div className="min-h-screen bg-[#f5f5f7]">
@@ -51,9 +60,11 @@ export default function AuthenticatedLayout({ header, children }) {
                             <NavPill href={route('dashboard')} active={route().current('dashboard')}>
                                 Dashboard
                             </NavPill>
-                            <NavPill href={route('aid.index')} active={route().current('aid.*')}>
-                                Documents
-                            </NavPill>
+                            {canAccessDocuments && (
+                                <NavPill href={route('aid.index')} active={route().current('aid.*')}>
+                                    Documents
+                                </NavPill>
+                            )}
                             {isAdmin && (
                                 <NavPill href={route('admin.users')} active={route().current('admin.*')}>
                                     Users
@@ -81,9 +92,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <div className="border-b border-gray-100 px-3 py-2.5">
                                     <p className="text-xs font-semibold text-gray-900 truncate">{user.name}</p>
                                     <p className="mt-0.5 text-[11px] text-gray-400 truncate">{user.email}</p>
+                                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-300">{roleLabel}</p>
                                 </div>
 
-                                {/* Mobile nav links — hidden on sm+ */}
+                                {/* Mobile nav links */}
                                 <div className="sm:hidden border-b border-gray-100 py-1">
                                     <Link
                                         href={route('dashboard')}
@@ -92,13 +104,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Dashboard
                                     </Link>
-                                    <Link
-                                        href={route('aid.index')}
-                                        className="flex w-full items-center px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
-                                        onClick={() => setMenuOpen(false)}
-                                    >
-                                        Documents
-                                    </Link>
+                                    {canAccessDocuments && (
+                                        <Link
+                                            href={route('aid.index')}
+                                            className="flex w-full items-center px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                                            onClick={() => setMenuOpen(false)}
+                                        >
+                                            Documents
+                                        </Link>
+                                    )}
                                     {isAdmin && (
                                         <Link
                                             href={route('admin.users')}
