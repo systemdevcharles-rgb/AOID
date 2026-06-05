@@ -35,7 +35,25 @@ class RegisteredUserController extends Controller
 
     public function storeAdminAssistant(Request $request): RedirectResponse
     {
-        return $this->handleRegistration($request, 'admin_assistant');
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'admin_assistant',
+            'status'   => 'approved',
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard'));
     }
 
     private function handleRegistration(Request $request, string $role): RedirectResponse
