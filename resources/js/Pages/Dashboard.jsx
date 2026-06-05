@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 
 /* ─── utils ─────────────────────────────────────────── */
 function formatBytes(bytes) {
@@ -75,7 +75,7 @@ function FileIcon({ type, className }) {
 
 /* ─── PreviewModal ───────────────────────────────────── */
 function PreviewModal({ doc, categoryName, onClose }) {
-    const fileUrl = `/${doc.file_path}`;
+    const fileUrl = `/secure/documents/${doc.id}`;
     const isPdf   = doc.file_type?.includes('pdf');
     const isImage = doc.file_type?.includes('image');
 
@@ -172,36 +172,32 @@ export default function Dashboard({ categories }) {
     [categories]);
 
     /* Filter state */
-    const [keyword,    setKeyword]    = useState('');
+    const [search,     setSearch]     = useState('');
     const [catFilter,  setCatFilter]  = useState('');
-    const [controlNo,  setControlNo]  = useState('');
     const [dateFrom,   setDateFrom]   = useState('');
     const [dateTo,     setDateTo]     = useState('');
     const [showCount,  setShowCount]  = useState('10');
     const [sortDir,    setSortDir]    = useState('desc');
     const [previewDoc, setPreviewDoc] = useState(null);
+    const searchRef = useRef();
 
-    /* Filtered + sorted results */
+    /* Real-time multi-field filter */
     const filtered = useMemo(() => {
         let docs = allDocs;
 
-        if (keyword.trim()) {
-            const q = keyword.toLowerCase();
+        const q = search.trim().toLowerCase();
+        if (q) {
             docs = docs.filter(d =>
                 d.title?.toLowerCase().includes(q) ||
                 d.control_number?.toLowerCase().includes(q) ||
-                d.details?.toLowerCase().includes(q) ||
-                d.uploader?.name?.toLowerCase().includes(q)
+                d._category?.toLowerCase().includes(q) ||
+                d.uploader?.name?.toLowerCase().includes(q) ||
+                d.details?.toLowerCase().includes(q)
             );
         }
 
         if (catFilter) {
             docs = docs.filter(d => String(d._categoryId) === catFilter);
-        }
-
-        if (controlNo.trim()) {
-            const q = controlNo.toLowerCase();
-            docs = docs.filter(d => d.control_number?.toLowerCase().includes(q));
         }
 
         if (dateFrom) {
@@ -216,13 +212,14 @@ export default function Dashboard({ categories }) {
             const diff = new Date(b.created_at) - new Date(a.created_at);
             return sortDir === 'desc' ? diff : -diff;
         });
-    }, [allDocs, keyword, catFilter, controlNo, dateFrom, dateTo, sortDir]);
+    }, [allDocs, search, catFilter, dateFrom, dateTo, sortDir]);
 
     const displayed = showCount === 'all' ? filtered : filtered.slice(0, Number(showCount));
     const latest    = allDocs.slice(0, 6);
 
     function clearFilters() {
-        setKeyword(''); setCatFilter(''); setControlNo(''); setDateFrom(''); setDateTo('');
+        setSearch(''); setCatFilter(''); setDateFrom(''); setDateTo('');
+        searchRef.current?.focus();
     }
 
     function handlePrint() {
@@ -287,73 +284,84 @@ export default function Dashboard({ categories }) {
                         </div>
                     </div>
 
-                    {/* Filters */}
-                    <div className="mb-4 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label className="block text-[12px] font-semibold text-gray-700 mb-1">Title / Keywords :</label>
+                    {/* ── Real-time search bar ── */}
+                    <div className="mb-4">
+                        <div className="relative">
+                            <svg className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z" />
+                            </svg>
+                            <input
+                                ref={searchRef}
+                                type="text"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Search by Document Name, Control Number, Category, or Attached By…"
+                                autoFocus
+                                className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-10 py-2.5 text-[13px] text-gray-800 placeholder-gray-400 shadow-sm focus:border-[#4a4fb5] focus:ring-1 focus:ring-[#4a4fb5]/20 focus:outline-none transition-colors"
+                            />
+                            {search && (
+                                <button
+                                    onClick={() => { setSearch(''); searchRef.current?.focus(); }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 transition-colors"
+                                >
+                                    <Icon.X className="h-3 w-3" />
+                                </button>
+                            )}
+                        </div>
+                        {search && (
+                            <p className="mt-1.5 text-[11px] text-gray-400">
+                                {filtered.length === 0
+                                    ? 'No results found'
+                                    : `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${search}"`}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* ── Secondary filters ── */}
+                    <div className="mb-4 flex flex-wrap items-end gap-3">
+                        <div>
+                            <label className="block text-[12px] font-semibold text-gray-700 mb-1">Category :</label>
+                            <div className="relative">
+                                <select
+                                    value={catFilter}
+                                    onChange={e => setCatFilter(e.target.value)}
+                                    className="appearance-none rounded border border-gray-300 px-3 py-2 pr-8 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors bg-white"
+                                >
+                                    <option value="">All Categories</option>
+                                    {categories.map(c => (
+                                        <option key={c.id} value={String(c.id)}>{c.name}</option>
+                                    ))}
+                                </select>
+                                <Icon.ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-[12px] font-semibold text-gray-700 mb-1">Date Uploaded :</label>
+                            <div className="flex items-center gap-2">
                                 <input
-                                    type="text"
-                                    value={keyword}
-                                    onChange={e => setKeyword(e.target.value)}
-                                    placeholder="Title/Keywords"
-                                    className="w-full rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 placeholder-gray-300 focus:border-[#4a4fb5] focus:outline-none transition-colors"
+                                    type="date"
+                                    value={dateFrom}
+                                    onChange={e => setDateFrom(e.target.value)}
+                                    className="rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors"
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-[12px] font-semibold text-gray-700 mb-1">Category :</label>
-                                <div className="relative">
-                                    <select
-                                        value={catFilter}
-                                        onChange={e => setCatFilter(e.target.value)}
-                                        className="w-full appearance-none rounded border border-gray-300 px-3 py-2 pr-8 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors bg-white"
-                                    >
-                                        <option value="">All Categories</option>
-                                        {categories.map(c => (
-                                            <option key={c.id} value={String(c.id)}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                    <Icon.ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[12px] font-semibold text-gray-700 mb-1">Control No :</label>
+                                <span className="text-[12px] text-gray-400">to</span>
                                 <input
-                                    type="text"
-                                    value={controlNo}
-                                    onChange={e => setControlNo(e.target.value)}
-                                    placeholder="Control No"
-                                    className="w-full rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 placeholder-gray-300 focus:border-[#4a4fb5] focus:outline-none transition-colors"
+                                    type="date"
+                                    value={dateTo}
+                                    onChange={e => setDateTo(e.target.value)}
+                                    className="rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors"
                                 />
                             </div>
                         </div>
-
-                        <div className="flex flex-wrap items-end gap-3">
-                            <div>
-                                <label className="block text-[12px] font-semibold text-gray-700 mb-1">Date Uploaded :</label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="date"
-                                        value={dateFrom}
-                                        onChange={e => setDateFrom(e.target.value)}
-                                        className="rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors"
-                                    />
-                                    <span className="text-[12px] text-gray-400">to</span>
-                                    <input
-                                        type="date"
-                                        value={dateTo}
-                                        onChange={e => setDateTo(e.target.value)}
-                                        className="rounded border border-gray-300 px-3 py-2 text-[13px] text-gray-800 focus:border-[#4a4fb5] focus:outline-none transition-colors"
-                                    />
-                                </div>
-                            </div>
+                        {(search || catFilter || dateFrom || dateTo) && (
                             <button
                                 onClick={clearFilters}
                                 className="rounded bg-[#5856D6] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#4a4fcb] transition-colors"
                             >
                                 Clear Filters
                             </button>
-                        </div>
+                        )}
                     </div>
 
                     {/* Toolbar: Print / Export / Show entries */}

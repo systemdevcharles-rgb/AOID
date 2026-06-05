@@ -252,7 +252,7 @@ function DeletionReasonModal({ doc, onClose }) {
 
 /* ─── PreviewModal ───────────────────────────────────── */
 function PreviewModal({ doc, onClose }) {
-    const fileUrl = `/${doc.file_path}`;
+    const fileUrl = `/secure/documents/${doc.id}`;
     const isPdf   = doc.file_type?.includes('pdf');
     const isImage = doc.file_type?.includes('image');
 

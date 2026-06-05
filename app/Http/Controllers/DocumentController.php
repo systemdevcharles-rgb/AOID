@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\DocumentCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class DocumentController extends Controller
 {
@@ -31,27 +33,21 @@ class DocumentController extends Controller
             'file'           => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
         ]);
 
-        $file      = $request->file('file');
-        $filename  = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $uploadDir = public_path('uploads/aid-documents');
-
+        $file         = $request->file('file');
+        $filename     = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
         $originalName = $file->getClientOriginalName();
         $mimeType     = $file->getClientMimeType();
         $fileSize     = $file->getSize();
 
-        if (! is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $file->move($uploadDir, $filename);
-        $relativePath = 'uploads/aid-documents/' . $filename;
+        // Store in private storage — not web-accessible
+        $storedPath = Storage::disk('local')->putFileAs('aid-documents', $file, $filename);
 
         Document::create([
             'category_id'    => $validated['category_id'],
             'control_number' => $validated['control_number'],
             'title'          => $validated['title'],
             'details'        => $validated['details'] ?? null,
-            'file_path'      => $relativePath,
+            'file_path'      => $storedPath,
             'file_name'      => $originalName,
             'file_type'      => $mimeType,
             'file_size'      => $fileSize,
@@ -59,6 +55,34 @@ class DocumentController extends Controller
         ]);
 
         return back()->with('success', 'Document attached.');
+    }
+
+    /**
+     * Serve a document — requires an active authenticated session.
+     * Adds X-Robots-Tag so search engines cannot index the file.
+     */
+    public function serve(Document $document): Response
+    {
+        // Resolve file path: new private storage first, old public fallback
+        $privatePath = Storage::disk('local')->path($document->file_path);
+        $publicPath  = public_path($document->file_path);
+
+        if (file_exists($privatePath)) {
+            $path = $privatePath;
+        } elseif (file_exists($publicPath)) {
+            $path = $publicPath;
+        } else {
+            abort(404);
+        }
+
+        $mime = $document->file_type ?? mime_content_type($path);
+
+        return response()->file($path, [
+            'Content-Type'  => $mime,
+            'X-Robots-Tag'  => 'noindex, nofollow, noarchive',
+            'Cache-Control' => 'private, no-store, no-cache',
+            'Pragma'        => 'no-cache',
+        ]);
     }
 
     public function destroy(Document $document, Request $request)
@@ -80,9 +104,15 @@ class DocumentController extends Controller
             ]);
         }
 
-        $fullPath = public_path($document->file_path);
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
+        // Delete from private storage
+        if (Storage::disk('local')->exists($document->file_path)) {
+            Storage::disk('local')->delete($document->file_path);
+        } else {
+            // Fallback: old public path
+            $publicPath = public_path($document->file_path);
+            if (file_exists($publicPath)) {
+                unlink($publicPath);
+            }
         }
 
         $document->delete();

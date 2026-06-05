@@ -33,6 +33,10 @@ Route::middleware('auth')->group(function () {
 
 // Requires an approved account — all roles (management, admin_assistant, admin)
 Route::middleware(['auth', 'approved'])->group(function () {
+    // Secure document file serving — session-gated, no public URL
+    Route::get('/secure/documents/{document}', [DocumentController::class, 'serve'])
+        ->name('aid.documents.serve');
+
     Route::get('/dashboard', function () {
         $categories = \App\Models\DocumentCategory::with(['documents.uploader'])
             ->orderBy('name')
