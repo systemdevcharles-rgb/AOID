@@ -53,9 +53,11 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::post('/aid/documents', [DocumentController::class, 'store'])->name('aid.documents.store');
         Route::delete('/aid/documents/{document}', [DocumentController::class, 'destroy'])->name('aid.documents.destroy');
 
+        // Category creation — admin + admin_assistant
+        Route::post('/aid/categories', [DocumentCategoryController::class, 'store'])->name('aid.categories.store');
+
         // Admin-only routes
         Route::middleware('admin')->group(function () {
-            Route::post('/aid/categories', [DocumentCategoryController::class, 'store'])->name('aid.categories.store');
             Route::delete('/aid/categories/{category}', [DocumentCategoryController::class, 'destroy'])->name('aid.categories.destroy');
 
             // User Management

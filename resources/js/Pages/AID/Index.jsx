@@ -282,8 +282,8 @@ function PreviewModal({ doc, onClose }) {
                 </div>
 
                 {/* Control number strip */}
-                <div className="flex-shrink-0 border-b border-gray-100 bg-gray-900 px-4 py-2">
-                    <p className="text-center font-mono text-[11px] font-semibold tracking-widest text-gray-400 truncate">
+                <div className="flex-shrink-0 border-b border-gray-100 bg-[#4a4fb5] px-4 py-2">
+                    <p className="text-center font-mono text-[11px] font-semibold tracking-widest text-white/70 truncate">
                         {doc.control_number}
                     </p>
                 </div>
@@ -310,7 +310,7 @@ function PreviewModal({ doc, onClose }) {
                                 <p className="mt-0.5 text-[12px] text-gray-400">{formatBytes(doc.file_size)}</p>
                             </div>
                             <a href={fileUrl} download={doc.file_name}
-                                className="flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-gray-700 transition-colors">
+                                className="flex items-center gap-2 rounded-xl bg-[#4a4fb5] px-5 py-2.5 text-[13px] font-medium text-white hover:bg-[#3a3fa5] transition-colors">
                                 <Icon.Download className="h-3.5 w-3.5" />
                                 Download
                             </a>
@@ -505,7 +505,7 @@ function AttachModal({ categories, onClose }) {
                         Cancel
                     </button>
                     <button type="submit" disabled={processing}
-                        className="flex-1 rounded-xl bg-gray-900 py-2.5 text-[13px] font-semibold text-white hover:bg-gray-700 disabled:opacity-40 transition-colors">
+                        className="flex-1 rounded-xl bg-[#4a4fb5] py-2.5 text-[13px] font-semibold text-white hover:bg-[#3a3fa5] disabled:opacity-40 transition-colors">
                         {processing ? 'Attaching…' : 'Attach'}
                     </button>
                 </div>
@@ -571,7 +571,7 @@ function AddCategoryModal({ existingNames, onClose }) {
                         Cancel
                     </button>
                     <button type="submit" disabled={processing}
-                        className="flex-1 rounded-xl bg-gray-900 py-2.5 text-[13px] font-semibold text-white hover:bg-gray-700 disabled:opacity-40 transition-colors">
+                        className="flex-1 rounded-xl bg-[#4a4fb5] py-2.5 text-[13px] font-semibold text-white hover:bg-[#3a3fa5] disabled:opacity-40 transition-colors">
                         {processing ? 'Creating…' : 'Create'}
                     </button>
                 </div>
@@ -596,13 +596,13 @@ function DocumentsTable({ documents, onPreview, onDelete }) {
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="border-b border-gray-100 bg-[#fafafa]">
+                        <tr className="bg-[#5c6bc0]">
                             <th className="w-12 px-4 py-3" />
-                            <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Document</th>
-                            <th className="hidden sm:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Control Number</th>
-                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Attached By</th>
-                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Date</th>
-                            <th className="hidden md:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Size</th>
+                            <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white">Document</th>
+                            <th className="hidden sm:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white">Control Number</th>
+                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white">Attached By</th>
+                            <th className="hidden lg:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white">Date</th>
+                            <th className="hidden md:table-cell px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white">Size</th>
                             <th className="w-20 px-4 py-3" />
                         </tr>
                     </thead>
@@ -682,7 +682,9 @@ function DocumentsTable({ documents, onPreview, onDelete }) {
 /* ─── Main ───────────────────────────────────────────── */
 export default function AIDIndex({ categories }) {
     const { auth, flash } = usePage().props;
-    const isAdmin = auth.user.role === 'admin';
+    const isAdmin           = auth.user.role === 'admin';
+    const isAdminAssistant  = auth.user.role === 'admin_assistant';
+    const canManageCats     = isAdmin || isAdminAssistant;
 
     const [selectedId, setSelectedId]       = useState(categories[0]?.id ?? null);
     const [showAttach, setShowAttach]       = useState(false);
@@ -743,7 +745,7 @@ export default function AIDIndex({ categories }) {
                                 onClick={() => setSelectedId(cat.id)}
                                 className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium whitespace-nowrap transition-colors ${
                                     cat.id === selectedId
-                                        ? 'bg-gray-900 text-white'
+                                        ? 'bg-[#4a4fb5] text-white'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}>
                                 {cat.name}
@@ -753,7 +755,7 @@ export default function AIDIndex({ categories }) {
                             </button>
                         ))
                     )}
-                    {isAdmin && (
+                    {canManageCats && (
                         <button onClick={() => setShowAddCat(true)}
                             className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
                             <Icon.Plus className="h-3 w-3" />
@@ -768,7 +770,7 @@ export default function AIDIndex({ categories }) {
                     <aside className="hidden md:flex w-60 flex-shrink-0 flex-col overflow-hidden border-r border-black/[0.06] bg-white">
                         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                             <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Categories</p>
-                            {isAdmin && (
+                            {canManageCats && (
                                 <button onClick={() => setShowAddCat(true)}
                                     className="flex h-5 w-5 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                                     title="New category">
@@ -781,7 +783,7 @@ export default function AIDIndex({ categories }) {
                             {categories.length === 0 ? (
                                 <div className="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center">
                                     <p className="text-[12px] text-gray-400">No categories yet</p>
-                                    {isAdmin && (
+                                    {canManageCats && (
                                         <button onClick={() => setShowAddCat(true)}
                                             className="mt-1.5 text-[12px] font-semibold text-gray-600 underline underline-offset-2 hover:text-gray-900">
                                             Add one
@@ -796,7 +798,7 @@ export default function AIDIndex({ categories }) {
                                             <li key={cat.id}>
                                                 <button onClick={() => setSelectedId(cat.id)}
                                                     className={`group flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-all duration-100 ${
-                                                        active ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                        active ? 'bg-[#4a4fb5] text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                     }`}>
                                                     <span className="truncate text-[13px] font-medium">{cat.name}</span>
                                                     <div className="flex flex-shrink-0 items-center gap-1.5">
@@ -851,7 +853,7 @@ export default function AIDIndex({ categories }) {
                                 </p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                                {isAdmin && (
+                                {canManageCats && (
                                     <button onClick={() => setShowAddCat(true)}
                                         className="hidden sm:flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-600 shadow-sm hover:bg-gray-50 transition-colors">
                                         <Icon.Plus className="h-3 w-3" />
@@ -860,7 +862,7 @@ export default function AIDIndex({ categories }) {
                                 )}
                                 {categories.length > 0 && (
                                     <button onClick={() => setShowAttach(true)}
-                                        className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-gray-700 transition-colors">
+                                        className="flex items-center gap-1.5 rounded-xl bg-[#4a4fb5] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-[#3a3fa5] transition-colors">
                                         <Icon.Paperclip className="h-3 w-3" />
                                         <span className="hidden xs:inline">Attach</span>
                                         <span className="hidden sm:inline"> Document</span>
@@ -875,9 +877,9 @@ export default function AIDIndex({ categories }) {
                                 <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
                                     <Icon.Folder className="text-gray-200" />
                                     <p className="text-[14px] font-medium text-gray-400">Select a category</p>
-                                    {isAdmin && (
+                                    {canManageCats && (
                                         <button onClick={() => setShowAddCat(true)}
-                                            className="mt-1 rounded-xl bg-gray-900 px-4 py-2 text-[13px] font-semibold text-white hover:bg-gray-700 transition-colors">
+                                            className="mt-1 rounded-xl bg-[#4a4fb5] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#3a3fa5] transition-colors">
                                             Create First Category
                                         </button>
                                     )}
@@ -898,7 +900,7 @@ export default function AIDIndex({ categories }) {
                                             <Icon.Inbox className="text-gray-200" />
                                             <p className="text-[13px] font-medium text-gray-400">No documents in this category</p>
                                             <button onClick={() => setShowAttach(true)}
-                                                className="rounded-xl bg-gray-900 px-4 py-2 text-[12px] font-semibold text-white hover:bg-gray-700 transition-colors">
+                                                className="rounded-xl bg-[#4a4fb5] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3a3fa5] transition-colors">
                                                 Attach First Document
                                             </button>
                                         </div>
