@@ -30,7 +30,7 @@ class DocumentController extends Controller
             'control_number' => ['required', 'string', 'max:255', 'unique:documents,control_number'],
             'title'          => ['required', 'string', 'max:255'],
             'details'        => ['nullable', 'string', 'max:2000'],
-            'file'           => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
+            'file'           => ['required', 'file', 'max:25600', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
         ]);
 
         $file         = $request->file('file');

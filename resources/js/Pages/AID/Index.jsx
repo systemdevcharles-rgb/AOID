@@ -397,9 +397,9 @@ function CustomSelect({ options, value, onChange }) {
 }
 
 /* ─── AttachModal ────────────────────────────────────── */
-function AttachModal({ categories, onClose }) {
+function AttachModal({ categories, defaultCategoryId, onClose }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        category_id:    categories[0]?.id ?? '',
+        category_id:    defaultCategoryId ?? categories[0]?.id ?? '',
         control_number: '',
         title:          '',
         details:        '',
@@ -490,7 +490,7 @@ function AttachModal({ categories, onClose }) {
                             </span>
                             <div>
                                 <p className="text-[13px] font-medium text-gray-700">Click to choose a file</p>
-                                <p className="mt-0.5 text-[11px] text-gray-400">PDF, DOC, or Image — max 20 MB</p>
+                                <p className="mt-0.5 text-[11px] text-gray-400">PDF, DOC, or Image — max 25 MB</p>
                             </div>
                         </div>
                     )}
@@ -919,7 +919,7 @@ export default function AIDIndex({ categories }) {
             </div>
 
             {/* Modals */}
-            {showAttach    && <AttachModal categories={categories} onClose={() => setShowAttach(false)} />}
+            {showAttach    && <AttachModal categories={categories} defaultCategoryId={selectedId} onClose={() => setShowAttach(false)} />}
             {showAddCat    && <AddCategoryModal existingNames={categories.map(c => c.name)} onClose={() => setShowAddCat(false)} />}
             {previewDoc    && <PreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />}
             {confirmDelete && (
