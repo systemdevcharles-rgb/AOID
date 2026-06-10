@@ -490,7 +490,7 @@ function AttachModal({ categories, defaultCategoryId, onClose }) {
                             </span>
                             <div>
                                 <p className="text-[13px] font-medium text-gray-700">Click to choose a file</p>
-                                <p className="mt-0.5 text-[11px] text-gray-400">PDF, DOC, or Image — max 25 MB</p>
+                                <p className="mt-0.5 text-[11px] text-gray-400">PDF, DOC, or Image — max 100 MB</p>
                             </div>
                         </div>
                     )}
