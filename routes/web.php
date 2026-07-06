@@ -6,7 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -90,6 +92,70 @@ Route::prefix('_maint')->group(function () {
         'clear-compiled',
         'optimize',
     ]));
+});
+
+Route::get('/clear-all', function() {
+    try {
+        // 1. Clear Laravel Caches
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+
+        // 2. Clear Compiled Classes
+        Artisan::call('clear-compiled');
+
+        // 3. Clear Cache Facade
+        Cache::flush();
+
+        // 4. Clear Application Cache Directory
+        $cacheDir = storage_path('framework/cache');
+        if (File::exists($cacheDir)) {
+            File::cleanDirectory($cacheDir);
+        }
+
+        // 5. Recreate Bootstrap Cache
+        Artisan::call('optimize:clear');
+
+        // 6. Clear and Regenerate Route Cache
+        try {
+            Artisan::call('route:cache');
+        } catch (\Exception $e) {
+            // If route caching fails, just continue
+        }
+
+        // 7. Clear and Regenerate Config Cache
+        try {
+            Artisan::call('config:cache');
+        } catch (\Exception $e) {
+            // If config caching fails, just continue
+        }
+
+        // 8. Clear OPcache if available
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+
+        // 9. Clear Realpath Cache
+        clearstatcache(true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All caches have been cleared successfully',
+            'details' => [
+                'cache_clear' => trim(Artisan::output()),
+                'time' => now()->toDateTimeString(),
+                'note' => 'You may need to wait a few minutes for Hostinger\'s server cache to fully clear'
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error while clearing caches',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
 
 Route::get('/', function () {
