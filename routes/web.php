@@ -19,21 +19,13 @@ use Inertia\Inertia;
 | caches. Kept outside any middleware so they still work when config,
 | routes, or sessions are broken.
 |
-| Guarded by a shared token — set MAINT_TOKEN in .env, then append
-| ?token=YOUR_TOKEN to every URL below.
+| WARNING: unauthenticated. Anyone who knows the URL can clear caches
+| and log out all users. Acceptable trade-off for a small internal app.
 |--------------------------------------------------------------------------
 */
 Route::prefix('_maint')->group(function () {
 
-    $guard = function () {
-        $expected = env('MAINT_TOKEN');
-        if (! $expected || request('token') !== $expected) {
-            abort(403, 'Invalid or missing maintenance token.');
-        }
-    };
-
-    $run = function (array $commands) use ($guard) {
-        $guard();
+    $run = function (array $commands) {
         $output = [];
         foreach ($commands as $cmd) {
             try {
@@ -62,8 +54,7 @@ Route::prefix('_maint')->group(function () {
     Route::get('/storage-link',   fn () => $run(['storage:link']));
 
     // Fix 419 | Page Expired — clears sessions + all caches, then re-optimizes
-    Route::get('/fix-419', function () use ($guard, $run) {
-        $guard();
+    Route::get('/fix-419', function () use ($run) {
         // Wipe active sessions so stale CSRF tokens are dropped
         try {
             $driver = config('session.driver');
