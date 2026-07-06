@@ -5,8 +5,101 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+/*
+|--------------------------------------------------------------------------
+| Maintenance / Recovery routes
+|--------------------------------------------------------------------------
+| Hit these in the browser after a host outage (Hostinger, etc.) when
+| pages return 419 | Page Expired or the app appears frozen due to stale
+| caches. Kept outside any middleware so they still work when config,
+| routes, or sessions are broken.
+|
+| Guarded by a shared token — set MAINT_TOKEN in .env, then append
+| ?token=YOUR_TOKEN to every URL below.
+|--------------------------------------------------------------------------
+*/
+Route::prefix('_maint')->group(function () {
+
+    $guard = function () {
+        $expected = env('MAINT_TOKEN');
+        if (! $expected || request('token') !== $expected) {
+            abort(403, 'Invalid or missing maintenance token.');
+        }
+    };
+
+    $run = function (array $commands) use ($guard) {
+        $guard();
+        $output = [];
+        foreach ($commands as $cmd) {
+            try {
+                Artisan::call($cmd);
+                $output[] = "[OK] {$cmd}\n" . Artisan::output();
+            } catch (\Throwable $e) {
+                $output[] = "[FAIL] {$cmd}\n" . $e->getMessage();
+            }
+        }
+        return response('<pre>' . e(implode("\n", $output)) . '</pre>');
+    };
+
+    // Individual clears
+    Route::get('/cache-clear',   fn () => $run(['cache:clear']));
+    Route::get('/config-clear',  fn () => $run(['config:clear']));
+    Route::get('/route-clear',   fn () => $run(['route:clear']));
+    Route::get('/view-clear',    fn () => $run(['view:clear']));
+    Route::get('/event-clear',   fn () => $run(['event:clear']));
+    Route::get('/compiled-clear', fn () => $run(['clear-compiled']));
+
+    // Optimize (rebuild caches for prod)
+    Route::get('/optimize',       fn () => $run(['optimize']));
+    Route::get('/optimize-clear', fn () => $run(['optimize:clear']));
+
+    // Storage symlink (breaks after some host restores)
+    Route::get('/storage-link',   fn () => $run(['storage:link']));
+
+    // Fix 419 | Page Expired — clears sessions + all caches, then re-optimizes
+    Route::get('/fix-419', function () use ($guard, $run) {
+        $guard();
+        // Wipe active sessions so stale CSRF tokens are dropped
+        try {
+            $driver = config('session.driver');
+            if ($driver === 'database') {
+                DB::table(config('session.table', 'sessions'))->truncate();
+            } elseif ($driver === 'file') {
+                $path = config('session.files', storage_path('framework/sessions'));
+                foreach (glob($path . '/*') as $f) {
+                    if (is_file($f) && basename($f) !== '.gitignore') @unlink($f);
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore — the cache clears below are still worth running
+        }
+
+        return $run([
+            'cache:clear',
+            'config:clear',
+            'route:clear',
+            'view:clear',
+            'event:clear',
+            'clear-compiled',
+        ]);
+    });
+
+    // Full recovery — clear everything, then re-optimize for production
+    Route::get('/fix-all', fn () => $run([
+        'cache:clear',
+        'config:clear',
+        'route:clear',
+        'view:clear',
+        'event:clear',
+        'clear-compiled',
+        'optimize',
+    ]));
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
