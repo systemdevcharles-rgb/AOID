@@ -161,7 +161,6 @@ Route::get('/clear-all', function() {
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin'       => Route::has('login'),
-        'canRegister'    => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion'     => PHP_VERSION,
     ]);
@@ -212,6 +211,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
 
             // User Management
             Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users');
+            Route::post('/admin/users', [UserManagementController::class, 'store'])->name('admin.users.store');
             Route::patch('/admin/users/{user}/approve', [UserManagementController::class, 'approve'])->name('admin.users.approve');
             Route::patch('/admin/users/{user}/reject', [UserManagementController::class, 'reject'])->name('admin.users.reject');
         });

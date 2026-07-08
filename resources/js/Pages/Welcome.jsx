@@ -52,20 +52,12 @@ export default function Welcome({ auth }) {
                                 Dashboard
                             </Link>
                         ) : (
-                            <>
-                                <Link
-                                    href={route('login')}
-                                    className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                                >
-                                    Sign In
-                                </Link>
-                                <Link
-                                    href={route('register')}
-                                    className="rounded-lg bg-gray-900 px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-gray-700"
-                                >
-                                    Register
-                                </Link>
-                            </>
+                            <Link
+                                href={route('login')}
+                                className="rounded-lg bg-gray-900 px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-gray-700"
+                            >
+                                Sign In
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -94,20 +86,12 @@ export default function Welcome({ auth }) {
                             Go to Dashboard
                         </Link>
                     ) : (
-                        <>
-                            <Link
-                                href={route('register')}
-                                className="rounded-xl bg-gray-900 px-5 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-gray-700"
-                            >
-                                Get Started
-                            </Link>
-                            <Link
-                                href={route('login')}
-                                className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-[14px] font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
-                            >
-                                Sign In
-                            </Link>
-                        </>
+                        <Link
+                            href={route('login')}
+                            className="rounded-xl bg-gray-900 px-5 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-gray-700"
+                        >
+                            Sign In
+                        </Link>
                     )}
                 </div>
 

@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 const FILTERS = ['all', 'pending', 'approved', 'rejected'];
@@ -55,6 +55,130 @@ function ConfirmRejectModal({ user, onConfirm, onCancel }) {
     );
 }
 
+function CreateUserModal({ open, onClose }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        email: '',
+        role: 'admin_assistant',
+        password: '',
+        password_confirmation: '',
+    });
+
+    if (!open) return null;
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('admin.users.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+    };
+
+    const inputClass =
+        'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] text-gray-900 placeholder-gray-300 outline-none transition-colors focus:border-gray-400';
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl border border-black/[0.06] bg-white shadow-2xl">
+                <div className="border-b border-gray-100 px-6 py-4">
+                    <p className="text-[14px] font-semibold text-gray-900">Add New User</p>
+                    <p className="mt-0.5 text-[11px] text-gray-400">
+                        Create a pre-approved account for a team member.
+                    </p>
+                </div>
+
+                <form onSubmit={submit} className="space-y-3 px-6 py-4">
+                    <div>
+                        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Full Name</label>
+                        <input
+                            type="text"
+                            value={data.name}
+                            onChange={e => setData('name', e.target.value)}
+                            required
+                            autoFocus
+                            placeholder="Juan Dela Cruz"
+                            className={inputClass}
+                        />
+                        {errors.name && <p className="mt-1 text-[11px] text-red-500">{errors.name}</p>}
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Email</label>
+                        <input
+                            type="email"
+                            value={data.email}
+                            onChange={e => setData('email', e.target.value)}
+                            required
+                            placeholder="user@example.com"
+                            className={inputClass}
+                        />
+                        {errors.email && <p className="mt-1 text-[11px] text-red-500">{errors.email}</p>}
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Role</label>
+                        <select
+                            value={data.role}
+                            onChange={e => setData('role', e.target.value)}
+                            className={inputClass}
+                        >
+                            <option value="admin_assistant">Admin Assistant</option>
+                            <option value="admin">Administrator</option>
+                            <option value="management">Management</option>
+                        </select>
+                        {errors.role && <p className="mt-1 text-[11px] text-red-500">{errors.role}</p>}
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Password</label>
+                        <input
+                            type="password"
+                            value={data.password}
+                            onChange={e => setData('password', e.target.value)}
+                            required
+                            placeholder="Min. 8 characters"
+                            className={inputClass}
+                        />
+                        {errors.password && <p className="mt-1 text-[11px] text-red-500">{errors.password}</p>}
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Confirm Password</label>
+                        <input
+                            type="password"
+                            value={data.password_confirmation}
+                            onChange={e => setData('password_confirmation', e.target.value)}
+                            required
+                            placeholder="Repeat password"
+                            className={inputClass}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => { reset(); onClose(); }}
+                            className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-gray-500 transition-colors hover:bg-gray-100"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded-lg bg-gray-900 px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50"
+                        >
+                            {processing ? 'Creating...' : 'Create user'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 export default function Users({ users }) {
     const { auth, flash } = usePage().props;
     const currentUser = auth.user;
@@ -63,6 +187,7 @@ export default function Users({ users }) {
     const [search, setSearch]         = useState('');
     const [toast, setToast]           = useState(null);
     const [confirmReject, setConfirmReject] = useState(null);
+    const [showCreate, setShowCreate] = useState(false);
 
     useEffect(() => {
         if (flash?.success) {
@@ -107,9 +232,20 @@ export default function Users({ users }) {
             <Head title="User Management" />
 
             {/* Toolbar */}
-            <div className="border-b border-black/[0.06] bg-white px-6 py-3.5">
-                <p className="text-[14px] font-semibold text-gray-900">User Management</p>
-                <p className="text-[11px] text-gray-400">Review, approve, and reject registered accounts</p>
+            <div className="flex items-center justify-between border-b border-black/[0.06] bg-white px-6 py-3.5">
+                <div>
+                    <p className="text-[14px] font-semibold text-gray-900">User Management</p>
+                    <p className="text-[11px] text-gray-400">Review, approve, and reject registered accounts</p>
+                </div>
+                <button
+                    onClick={() => setShowCreate(true)}
+                    className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-gray-700"
+                >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New User
+                </button>
             </div>
 
             {/* Content */}
@@ -246,6 +382,12 @@ export default function Users({ users }) {
                 user={confirmReject}
                 onConfirm={confirmDoReject}
                 onCancel={() => setConfirmReject(null)}
+            />
+
+            {/* Create User modal */}
+            <CreateUserModal
+                open={showCreate}
+                onClose={() => setShowCreate(false)}
             />
 
             {/* Toast */}
